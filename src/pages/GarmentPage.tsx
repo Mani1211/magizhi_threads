@@ -5,7 +5,7 @@ import type { Garment } from '../data/types';
 import { GarmentSheet } from '../forms/GarmentSheet';
 import { errorMessage } from '../lib/errors';
 import { ago, firstName, formatDate, plural } from '../lib/format';
-import { FIELD_BY_KEY, LENGTH_KEYS, garmentType } from '../lib/measurements';
+import { LENGTH_KEYS, fieldFor, garmentType } from '../lib/measurements';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { BackIcon, EditIcon, TrashIcon } from '../ui/Icons';
 import { MeasurementView } from '../ui/MeasurementGrid';
@@ -36,8 +36,8 @@ export default function GarmentPage() {
   const t = garmentType(garment.type);
   // Only the measurements that were entered, in catalogue order.
   const filledKeys = t.keys.filter((k) => garment.measurements[k] != null);
-  // Values saved under fields that have since left this type's list still show.
-  const extraKeys = Object.keys(garment.measurements).filter((k) => !t.keys.includes(k) && FIELD_BY_KEY[k]);
+  // Measurements added on top of the type's list (other catalogue fields or custom ones).
+  const extraKeys = Object.keys(garment.measurements).filter((k) => !t.keys.includes(k) && fieldFor(k));
   const shownKeys = [...filledKeys, ...extraKeys];
   const refPhotos = photosOf(data, { garmentId: garment.id, kind: 'reference' });
   const finPhotos = photosOf(data, { garmentId: garment.id, kind: 'finished' });
@@ -105,7 +105,7 @@ export default function GarmentPage() {
               <div>
                 <h2>{t.label} measurements</h2>
                 <p className="hint">
-                  In inches · {filledKeys.length} of {t.keys.length} entered
+                  In inches · {filledKeys.length} of {t.keys.length} entered{extraKeys.length ? ` · ${extraKeys.length} added` : ''}
                   {anyDiff && <> · <span className="legend-key"><i />Changed from {firstName(profile.name)}’s body measurements</span></>}
                 </p>
               </div>

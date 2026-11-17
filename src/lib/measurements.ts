@@ -59,6 +59,33 @@ export const FIELDS: Field[] = [
 export const ALL_KEYS = FIELDS.map((f) => f.key);
 export const FIELD_BY_KEY: Record<string, Field> = Object.fromEntries(FIELDS.map((f) => [f.key, f]));
 
+/*
+ * Custom measurements: a garment can carry measurements that aren't in the catalogue
+ * (e.g. "Slit length"). They are stored next to the others as "custom:<name>".
+ */
+const CUSTOM_PREFIX = 'custom:';
+export const OTHER_GROUP = 'Other measurements';
+export const isCustomKey = (key: string) => key.startsWith(CUSTOM_PREFIX);
+export const customKey = (name: string) => CUSTOM_PREFIX + name.trim().replace(/\s+/g, ' ');
+
+/** Field description for a catalogue key or a custom key; undefined for anything else. */
+export function fieldFor(key: string): Field | undefined {
+  if (FIELD_BY_KEY[key]) return FIELD_BY_KEY[key];
+  if (!isCustomKey(key)) return undefined;
+  const name = key.slice(CUSTOM_PREFIX.length);
+  return { key, label: name, group: OTHER_GROUP, full: name };
+}
+
+/** Finds a catalogue field by what someone typed, e.g. "elbow" or "shoulder front". */
+export function catalogueFieldNamed(name: string): Field | undefined {
+  const n = name.trim().toLowerCase();
+  return FIELDS.find((f) => f.full.toLowerCase() === n || f.label.toLowerCase() === n);
+}
+
+/** A safe element id for a measurement input (custom names can contain spaces). */
+export const inputId = (key: string) =>
+  'm-' + key.replace(/[^a-zA-Z0-9_-]/g, (c) => `_${c.codePointAt(0)!.toString(16)}`);
+
 const NECK = ['neck_round', 'neck_front', 'neck_back'];
 const SHOULDER = ['shoulder_full', 'shoulder_front', 'shoulder_back'];
 const CHEST = ['chest_upper', 'chest_mid', 'chest_under'];

@@ -1,12 +1,17 @@
 import { Fragment, type ReactNode } from 'react';
-import { FIELDS, LENGTH_KEYS, formatInch, type Field, type Measurements } from '../lib/measurements';
+import { CloseIcon } from './Icons';
+import { FIELDS, LENGTH_KEYS, OTHER_GROUP, fieldFor, formatInch, inputId, isCustomKey, type Field, type Measurements } from '../lib/measurements';
 
 type Block = { field: Field } | { group: string; fields: Field[] };
 
-/** Fields in catalogue order; consecutive fields of a group (Neck, Chest…) are kept together. */
+/**
+ * Fields in catalogue order; consecutive fields of a group (Neck, Chest…) are kept together.
+ * Custom measurements follow in their own "Other measurements" block, in the order given.
+ */
 function blocks(keys: string[]): Block[] {
   const set = new Set(keys);
   const fs = FIELDS.filter((f) => set.has(f.key));
+  const custom = keys.filter(isCustomKey).map((k) => fieldFor(k)!);
   const out: Block[] = [];
   for (let i = 0; i < fs.length;) {
     const f = fs[i];
@@ -19,6 +24,7 @@ function blocks(keys: string[]): Block[] {
       i++;
     }
   }
+  if (custom.length) out.push({ group: OTHER_GROUP, fields: custom });
   return out;
 }
 
@@ -57,21 +63,33 @@ export function MeasurementView({ keys, values, body }: { keys: string[]; values
   );
 }
 
-/** Inputs for each key. `hint` shows under a value, e.g. the body measurement it was changed from. */
-export function MeasurementEdit({ keys, values, invalid, onChange, hint }: {
+/**
+ * Inputs for each key. `hint` shows under a value, e.g. the body measurement it was changed from.
+ * Keys in `removable` get a remove button (measurements added on top of a garment's list).
+ */
+export function MeasurementEdit({ keys, values, invalid, onChange, hint, removable, onRemove }: {
   keys: string[];
   values: Record<string, string>;
   invalid: Set<string>;
   onChange(key: string, value: string): void;
   hint?(key: string): string;
+  removable?: Set<string>;
+  onRemove?(key: string): void;
 }) {
   return (
     <Grid keys={keys} cell={(f) => (
-      <label className={`m-cell${invalid.has(f.key) ? ' invalid' : ''}`} htmlFor={`m-${f.key}`}>
-        <span className="m-label">{f.label}</span>
+      <label className={`m-cell${invalid.has(f.key) ? ' invalid' : ''}${removable?.has(f.key) ? ' extra' : ''}`} htmlFor={inputId(f.key)}>
+        <span className="m-label-row">
+          <span className="m-label">{f.label}</span>
+          {removable?.has(f.key) && onRemove && (
+            <button type="button" className="m-remove" onClick={(e) => { e.preventDefault(); onRemove(f.key); }} aria-label={`Remove ${f.full}`} title={`Remove ${f.full}`}>
+              <CloseIcon />
+            </button>
+          )}
+        </span>
         <span className="m-input">
           <input
-            id={`m-${f.key}`}
+            id={inputId(f.key)}
             data-key={f.key}
             inputMode="decimal"
             autoComplete="off"

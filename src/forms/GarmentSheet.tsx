@@ -3,7 +3,8 @@ import { photosOf, useData } from '../data/store';
 import type { Garment, Photo, Profile } from '../data/types';
 import { errorMessage } from '../lib/errors';
 import { firstName, plural } from '../lib/format';
-import { FIELD_BY_KEY, GARMENT_TYPES, LENGTH_KEYS, formatInch, garmentType, parseAll, parseInch, toRaw } from '../lib/measurements';
+import { FIELD_BY_KEY, GARMENT_TYPES, LENGTH_KEYS, fieldFor, formatInch, garmentType, inputId, parseAll, parseInch, toRaw } from '../lib/measurements';
+import { AddMeasurement } from '../ui/AddMeasurement';
 import { MeasurementEdit } from '../ui/MeasurementGrid';
 import { PhotoPicker } from '../ui/PhotoPicker';
 import { Sheet } from '../ui/Sheet';
@@ -30,20 +31,46 @@ export function GarmentSheet({ profile, garment, onClose, onSaved }: Props) {
   const [pendingRef, setPendingRef] = useState<File[]>([]);
   const [pendingFin, setPendingFin] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
+  /** Measurements added on top of the type's list: other catalogue fields or custom ones. */
+  const [extras, setExtras] = useState<string[]>(() =>
+    garment ? Object.keys(garment.measurements).filter((k) => !garmentType(garment.type).keys.includes(k) && fieldFor(k)) : [],
+  );
+  const [focusKey, setFocusKey] = useState<string | null>(null);
   const nameRef = useRef<HTMLInputElement>(null);
 
   const typeKeys = type ? garmentType(type).keys : [];
-  // Keep values saved under fields that are no longer in this type's list, so editing never drops them.
-  const savedExtra = type && garment && garment.type === type
-    ? Object.keys(garment.measurements).filter((k) => !typeKeys.includes(k) && FIELD_BY_KEY[k])
-    : [];
-  const keys = [...typeKeys, ...savedExtra];
+  const extraKeys = extras.filter((k) => !typeKeys.includes(k));
+  const keys = [...typeKeys, ...extraKeys];
   const hasBody = Object.keys(profile.body).length > 0;
   const who = firstName(profile.name);
   const savedRef = garment ? photosOf(data, { garmentId: garment.id, kind: 'reference' }) : [];
   const savedFin = garment ? photosOf(data, { garmentId: garment.id, kind: 'finished' }) : [];
 
   useEffect(() => { if (!garment) nameRef.current?.focus(); }, [garment]);
+
+  // Put the cursor in a measurement that was just added.
+  useEffect(() => {
+    if (!focusKey) return;
+    const el = document.getElementById(inputId(focusKey));
+    el?.scrollIntoView({ block: 'center' });
+    el?.focus({ preventScroll: true });
+    setFocusKey(null);
+  }, [focusKey]);
+
+  function addExtra(key: string) {
+    setExtras((e) => [...e, key]);
+    // A catalogue measurement starts from the body value, like the rest of the list.
+    if (FIELD_BY_KEY[key] && !LENGTH_KEYS.has(key) && profile.body[key] != null) {
+      setMeas((m) => (m[key] ? m : { ...m, [key]: String(profile.body[key]) }));
+    }
+    setFocusKey(key);
+  }
+
+  function removeExtra(key: string) {
+    setExtras((e) => e.filter((k) => k !== key));
+    setMeas((m) => { const n = { ...m }; delete n[key]; return n; });
+    setInvalid((s) => { const n = new Set(s); n.delete(key); return n; });
+  }
 
   /** Copies body measurements into empty fields of the chosen type (never the lengths, which differ per garment). */
   function fill(typeId: string, overwrite: boolean) {
@@ -58,7 +85,7 @@ export function GarmentSheet({ profile, garment, onClose, onSaved }: Props) {
   }
 
   function hint(k: string): string {
-    if (LENGTH_KEYS.has(k)) return '';
+    if (LENGTH_KEYS.has(k) || !FIELD_BY_KEY[k]) return '';
     const b = profile.body[k];
     const v = parseInch(meas[k]);
     if (b == null || v == null || Number.isNaN(v) || Math.abs(v - b) < 0.001) return '';
@@ -71,7 +98,7 @@ export function GarmentSheet({ profile, garment, onClose, onSaved }: Props) {
     setErrors({ name: !trimmed, type: !type });
     setInvalid(new Set(bad));
     if (!trimmed || !type || bad.length) {
-      const el = !trimmed ? nameRef.current : !type ? document.querySelector<HTMLInputElement>('input[name="g-type"]') : document.getElementById(`m-${bad[0]}`);
+      const el = !trimmed ? nameRef.current : !type ? document.querySelector<HTMLInputElement>('input[name="g-type"]') : document.getElementById(inputId(bad[0]));
       el?.scrollIntoView({ block: 'center' });
       el?.focus({ preventScroll: true });
       return;
@@ -153,11 +180,14 @@ export function GarmentSheet({ profile, garment, onClose, onSaved }: Props) {
               values={meas}
               invalid={invalid}
               hint={hint}
+              removable={new Set(extraKeys)}
+              onRemove={removeExtra}
               onChange={(k, v) => {
                 setMeas((m) => ({ ...m, [k]: v }));
                 if (invalid.has(k)) setInvalid((s) => { const n = new Set(s); n.delete(k); return n; });
               }}
             />
+            <AddMeasurement existing={keys} onAdd={addExtra} />
           </>
         )}
       </div>

@@ -3,7 +3,7 @@ import { photosOf, useData } from '../data/store';
 import type { Photo, Profile } from '../data/types';
 import { errorMessage } from '../lib/errors';
 import { plural } from '../lib/format';
-import { ALL_KEYS, parseAll, toRaw } from '../lib/measurements';
+import { ALL_KEYS, inputId, parseAll, toRaw } from '../lib/measurements';
 import { MeasurementEdit } from '../ui/MeasurementGrid';
 import { PhotoPicker } from '../ui/PhotoPicker';
 import { Sheet } from '../ui/Sheet';
@@ -49,7 +49,7 @@ export function ProfileSheet({ profile, focusMeasurements, onClose, onSaved }: P
     setNameError(!trimmed);
     setInvalid(new Set(bad));
     if (!trimmed || bad.length) {
-      const el = !trimmed ? nameRef.current : document.getElementById(`m-${bad[0]}`);
+      const el = !trimmed ? nameRef.current : document.getElementById(inputId(bad[0]));
       el?.scrollIntoView({ block: 'center' });
       el?.focus({ preventScroll: true });
       return;
