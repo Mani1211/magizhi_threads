@@ -57,7 +57,7 @@ export default function GarmentPage() {
   async function remove() {
     setDeleting(true);
     try {
-      const back = data.profilePath(profile!.id);
+      const back = `${data.profilePath(profile!.id)}?tab=garments`;
       await data.deleteGarment(garment!.id);
       navigate(back, { replace: true });
       toast('Garment deleted');
@@ -75,7 +75,7 @@ export default function GarmentPage() {
 
   return (
     <div className="stack">
-      <Link className="crumb" to={data.profilePath(profile.id)}><BackIcon /> {profile.name}</Link>
+      <Link className="crumb" to={`${data.profilePath(profile.id)}?tab=garments`}><BackIcon /> {profile.name}</Link>
       <section className="g-head" style={typeStyle(garment.type)}>
         <div className="g-title">
           <TypeBadge type={garment.type} />

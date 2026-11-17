@@ -18,7 +18,7 @@ import { UploadButton } from '../ui/UploadButton';
 import { NotFound, typeCounts } from './shared';
 import { useRouteRecords } from './useRouteRecords';
 
-const TABS = ['garments', 'measurements', 'notes'] as const;
+const TABS = ['measurements', 'garments', 'notes'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function ProfilePage() {
@@ -35,10 +35,11 @@ export default function ProfilePage() {
   if (!profile) return <NotFound text="This profile doesn’t exist." />;
   if (redirect) return <Navigate to={redirect} replace />;
 
-  const tab: Tab = TABS.includes(params.get('tab') as Tab) ? (params.get('tab') as Tab) : 'garments';
+  const tab: Tab = TABS.includes(params.get('tab') as Tab) ? (params.get('tab') as Tab) : 'measurements';
   const garments = garmentsOf(data, profile.id);
   const photos = photosOf(data, { profileId: profile.id, kind: 'profile' });
-  const filled = FIELDS.filter((f) => profile.body[f.key] != null).length;
+  const filledKeys = ALL_KEYS.filter((k) => profile.body[k] != null);
+  const filled = filledKeys.length;
 
   async function remove() {
     setDeleting(true);
@@ -54,8 +55,8 @@ export default function ProfilePage() {
   }
 
   const tabs: [Tab, string, string | number][] = [
-    ['garments', 'Garments', garments.length],
     ['measurements', 'Body measurements', `${filled}/${FIELDS.length}`],
+    ['garments', 'Garments', garments.length],
     ['notes', 'Notes & photos', photos.length],
   ];
 
@@ -80,7 +81,7 @@ export default function ProfilePage() {
       <div className="tabs" role="tablist" aria-label="Profile sections">
         {tabs.map(([id, label, n]) => (
           <button key={id} type="button" role="tab" className="tab" aria-selected={tab === id}
-            onClick={() => setParams(id === 'garments' ? {} : { tab: id }, { replace: true })}>
+            onClick={() => setParams(id === 'measurements' ? {} : { tab: id }, { replace: true })}>
             {label}<span className="count">{n}</span>
           </button>
         ))}
@@ -91,10 +92,17 @@ export default function ProfilePage() {
         {tab === 'measurements' && (
           <div className="panel">
             <div className="panel-head">
-              <div><h2>Full body measurements</h2><p className="hint">In inches · {filled} of {FIELDS.length} filled</p></div>
+              <div><h2>Full body measurements</h2><p className="hint">In inches · {filled} of {FIELDS.length} entered</p></div>
               <button type="button" className="btn" onClick={() => setEditing('measurements')}><EditIcon /> Edit measurements</button>
             </div>
-            <MeasurementView keys={ALL_KEYS} values={profile.body} />
+            {filled ? (
+              <MeasurementView keys={filledKeys} values={profile.body} />
+            ) : (
+              <div className="empty">
+                <p className="empty-title">No body measurements yet</p>
+                <button type="button" className="btn primary" onClick={() => setEditing('measurements')}><EditIcon /> Add measurements</button>
+              </div>
+            )}
           </div>
         )}
         {tab === 'notes' && (
@@ -123,7 +131,7 @@ export default function ProfilePage() {
       )}
       {addingGarment && (
         <GarmentSheet profile={profile} onClose={() => setAddingGarment(false)}
-          onSaved={() => { setAddingGarment(false); setParams({}, { replace: true }); toast(`Garment added to ${firstName(profile.name)}’s profile`); }} />
+          onSaved={() => { setAddingGarment(false); setParams({ tab: 'garments' }, { replace: true }); toast(`Garment added to ${firstName(profile.name)}’s profile`); }} />
       )}
       {confirmDelete && (
         <ConfirmDialog
