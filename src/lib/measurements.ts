@@ -115,13 +115,31 @@ export const GARMENT_TYPES: GarmentType[] = [
 
 const TYPE_BY_ID: Record<string, GarmentType> = Object.fromEntries(GARMENT_TYPES.map((t) => [t.id, t]));
 
-/** Look up a garment type; unknown ids (e.g. a type removed later) still render. */
+/*
+ * Custom garment types: when a garment isn't one of the listed types, its type is stored as the
+ * name typed in (e.g. "Lehenga"). The app remembers it from existing garments and reuses the
+ * measurements of the last garment of that type, so no separate type list is stored.
+ */
+export const MAX_TYPE_NAME = 30;
+export const isBuiltInType = (id: string) => id in TYPE_BY_ID;
+
+/** A listed type matching a typed name ("blouse", "Blouse"), if any. */
+export const builtInTypeNamed = (name: string) =>
+  GARMENT_TYPES.find((t) => t.label.toLowerCase() === name.trim().toLowerCase());
+
+/** Look up a garment type; custom types (and any removed later) get their name as label and no default list. */
 export function garmentType(id: string): GarmentType {
   return TYPE_BY_ID[id] ?? { id, label: id.charAt(0).toUpperCase() + id.slice(1), keys: [] };
 }
 
-/** CSS colour for a type's badge and accents. */
-export const typeColor = (id: string) => `var(--t-${id}, var(--muted))`;
+const CUSTOM_TYPE_COLORS = 4;
+/** CSS colour for a type's badge and accents; custom types get one of a few spare colours. */
+export function typeColor(id: string): string {
+  if (isBuiltInType(id)) return `var(--t-${id})`;
+  let h = 0;
+  for (const ch of id.toLowerCase()) h = (h * 31 + ch.codePointAt(0)!) >>> 0;
+  return `var(--t-c${(h % CUSTOM_TYPE_COLORS) + 1})`;
+}
 
 /** These change with every garment, so they are never copied from body measurements. */
 export const LENGTH_KEYS = new Set(['full_length', 'sleeve_length']);

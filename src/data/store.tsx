@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { errorMessage } from '../lib/errors';
 import { ms } from '../lib/format';
+import { isBuiltInType } from '../lib/measurements';
 import { RESERVED_SLUGS, slugify, uniqueSlug } from '../lib/slug';
 import { api } from './api';
 import type { Garment, GarmentInput, Photo, PhotoKind, PhotoMeta, Profile, ProfileInput, Snapshot } from './types';
@@ -163,6 +164,27 @@ export function lastTouch(s: Snapshot, p: Profile): string {
   for (const g of s.garments) if (g.profileId === p.id && g.updatedAt > best) best = g.updatedAt;
   for (const ph of s.photos) if (ph.profileId === p.id && ph.createdAt > best) best = ph.createdAt;
   return best;
+}
+
+/** Garment types typed in by hand (not one of the listed types), most recently used first. */
+export function customTypes(s: Snapshot): string[] {
+  const seen = new Map<string, string>();
+  for (const g of s.garments) {
+    if (isBuiltInType(g.type)) continue;
+    const prev = seen.get(g.type);
+    if (!prev || g.createdAt > prev) seen.set(g.type, g.createdAt);
+  }
+  return [...seen.entries()].sort((a, b) => (a[1] < b[1] ? 1 : -1)).map(([t]) => t);
+}
+
+/** Measurement list for a custom type: the measurements of the latest other garment of that type. */
+export function templateKeys(s: Snapshot, type: string, exceptGarmentId?: string): string[] {
+  let latest: Garment | undefined;
+  for (const g of s.garments) {
+    if (g.type !== type || g.id === exceptGarmentId) continue;
+    if (!latest || g.createdAt > latest.createdAt) latest = g;
+  }
+  return latest ? Object.keys(latest.measurements) : [];
 }
 
 /** First photo to represent a garment: its newest finished photo, else its first reference photo. */

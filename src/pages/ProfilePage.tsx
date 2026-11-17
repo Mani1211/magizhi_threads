@@ -6,7 +6,7 @@ import { GarmentSheet } from '../forms/GarmentSheet';
 import { ProfileSheet } from '../forms/ProfileSheet';
 import { errorMessage } from '../lib/errors';
 import { firstName, formatDate, formatMonth, initials, plural } from '../lib/format';
-import { ALL_KEYS, FIELDS, SUMMARY, formatInch, garmentType } from '../lib/measurements';
+import { ALL_KEYS, FIELDS, SUMMARY, fieldFor, formatInch, garmentType, isCustomKey } from '../lib/measurements';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { BackIcon, EditIcon, PlusIcon, TrashIcon } from '../ui/Icons';
 import { MeasurementView } from '../ui/MeasurementGrid';
@@ -183,7 +183,10 @@ function GarmentsTab({ profile, garments, onAdd }: { profile: Profile; garments:
 function GarmentTag({ garment: g }: { garment: Garment }) {
   const data = useData();
   const cover = coverPhoto(data, g.id);
-  const summary = (SUMMARY[g.type] ?? []).filter(([k]) => g.measurements[k] != null);
+  const summary: [string, string][] = SUMMARY[g.type]
+    ? SUMMARY[g.type].filter(([k]) => g.measurements[k] != null)
+    : [...ALL_KEYS.filter((k) => g.measurements[k] != null), ...Object.keys(g.measurements).filter(isCustomKey)]
+        .slice(0, 3).map((k) => [k, fieldFor(k)?.full ?? k]);
   return (
     <Link className="tag" to={data.garmentPath(g)} style={typeStyle(g.type)}>
       <span className="tag-edge">

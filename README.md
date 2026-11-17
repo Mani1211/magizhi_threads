@@ -62,6 +62,7 @@ Everything lives in [`src/lib/measurements.ts`](src/lib/measurements.ts):
 - `FIELDS` is the full-body list (key, label, group).
 - `GARMENT_TYPES` lists each garment type and the measurement keys its form asks for. Maxi, Anarkali and Pant are provisional.
 - `SUMMARY` picks the three values shown on a garment's card.
+- Types not in the list can be added from the garment form ("+ Other type"). They're stored by name in the garment's `type`, appear in the picker once used, and start with the measurements of the last garment of that type.
 
 Measurements are stored as JSON keyed by these keys, so adding a field or type needs no database change. In the garment form, "Add another measurement" adds any catalogue field missing from the type's list, or a custom one with its own name (stored as `custom:<name>` and shown under "Other measurements"). Give a new type a colour in `src/styles.css` (`--t-<id>`, in both the light and dark blocks).
 

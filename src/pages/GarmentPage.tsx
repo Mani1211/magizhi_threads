@@ -105,7 +105,9 @@ export default function GarmentPage() {
               <div>
                 <h2>{t.label} measurements</h2>
                 <p className="hint">
-                  In inches · {filledKeys.length} of {t.keys.length} entered{extraKeys.length ? ` · ${extraKeys.length} added` : ''}
+                  {t.keys.length
+                    ? <>In inches · {filledKeys.length} of {t.keys.length} entered{extraKeys.length ? ` · ${extraKeys.length} added` : ''}</>
+                    : <>In inches · {plural(shownKeys.length, 'measurement')}</>}
                   {anyDiff && <> · <span className="legend-key"><i />Changed from {firstName(profile.name)}’s body measurements</span></>}
                 </p>
               </div>
