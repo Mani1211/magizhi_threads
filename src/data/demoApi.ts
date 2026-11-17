@@ -15,12 +15,12 @@ type Art = ['swatch' | 'garment', string, string, string, Parameters<typeof swat
 function seed(blobs: Map<string, Blob>): Snapshot {
   const now = Date.now();
   const base: Measurements = {
-    full_length: 54, shoulder_front: 14, shoulder_back: 14.5, neck_round: 14, neck_front: 7, neck_back: 6, apex: 10, apex_to_apex: 7.5,
-    chest_upper: 34, chest_mid: 36, chest_under: 30, waist: 30, waist_mid: 32, seat: 38, thighs: 22, knees: 15, ankle: 10, armhole: 16,
+    full_length: 54, shoulder_full: 14.5, shoulder_front: 14, shoulder_back: 14.5, neck_round: 14, neck_front: 7, neck_back: 6, apex: 10, apex_to_apex: 7.5,
+    chest_upper: 34, chest_mid: 36, chest_under: 30, waist: 30, waist_mid: 32, seat: 38, thighs: 22, knees: 15, ankle: 10, armhole: 16, armhole_length: 8,
     elbow: 11, cuff: 9, sleeve_length: 22, sleeve_5: 12, sleeve_8: 11, sleeve_10: 10.5, sh_waist: 15, sh_seat: 23, sh_apex: 10,
   };
   const scale: Record<string, number> = { neck_round: .3, chest_upper: 1, chest_mid: 1, chest_under: .9, waist: 1, waist_mid: 1, seat: 1, thighs: .5,
-    knees: .25, ankle: .15, armhole: .4, elbow: .25, cuff: .2, sleeve_5: .35, sleeve_8: .3, sleeve_10: .3 };
+    knees: .25, ankle: .15, armhole: .4, armhole_length: .15, elbow: .25, cuff: .2, sleeve_5: .35, sleeve_8: .3, sleeve_10: .3 };
   const body = (delta: number): Measurements =>
     Object.fromEntries(Object.entries(base).map(([k, v]) => [k, Math.round((v + (scale[k] ?? 0) * delta) * 4) / 4]));
   const lengths: Record<string, Measurements> = {

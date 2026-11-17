@@ -2,7 +2,7 @@
 
 The measurement book for Magizhi Threads: customer profiles with full-body measurements, the garments stitched for each customer, reference and finished photos, and a gallery of finished work.
 
-- **Profiles:** name, phone, 27 full-body measurements, remarks and photos.
+- **Profiles:** name, phone, 29 full-body measurements in the shop's sections, remarks and photos.
 - **Garments** (Blouse, Kurti, Maxi, Anarkali, Pant): the form shows only the measurements for the chosen type and fills them in from the customer's body measurements. Each garment has remarks, **reference photos** (design, fabric, the customer's sample) and **finished photos** (the stitched garment).
 - **Gallery:** every finished photo, newest first, filterable by garment type.
 - Measurements are in inches; `14.5`, `14 1/2` and `14½` all work and display as `14½″`.

@@ -1,7 +1,8 @@
 /**
  * Measurement catalogue for Magizhi Threads.
  *
- * FIELDS is the full-body list. Each garment type picks the fields it needs.
+ * FIELDS is the full-body list, in the shop's order and sections (Shoulder, Neck, Apex, Chest,
+ * Bottom length, Armhole, Sleeves, Length measurements). Each garment type picks the fields it needs.
  * Blouse and Kurti come from the shop's own list. Maxi, Anarkali and Pant are
  * provisional and will be replaced once their lists are confirmed; add or remove
  * keys in GARMENT_TYPES to change what the garment form asks for.
@@ -23,39 +24,41 @@ const F = (key: string, label: string, group?: string, full?: string): Field => 
 
 export const FIELDS: Field[] = [
   F('full_length', 'Full length'),
+  F('shoulder_full', 'Full shoulder', 'Shoulder'),
   F('shoulder_front', 'Front', 'Shoulder', 'Shoulder front'),
   F('shoulder_back', 'Back', 'Shoulder', 'Shoulder back'),
   F('neck_round', 'Neck round', 'Neck'),
   F('neck_front', 'Neck front', 'Neck'),
   F('neck_back', 'Neck back', 'Neck'),
-  F('apex', 'Apex'),
-  F('apex_to_apex', 'Apex to apex'),
+  F('apex', 'Apex', 'Apex'),
+  F('apex_to_apex', 'Apex to apex', 'Apex'),
   F('chest_upper', 'Upper chest', 'Chest'),
   F('chest_mid', 'Mid chest', 'Chest'),
   F('chest_under', 'Under chest', 'Chest'),
-  F('waist', 'Waist'),
-  F('waist_mid', 'Mid waist'),
-  F('seat', 'Seat'),
-  F('thighs', 'Thighs'),
-  F('knees', 'Knees'),
-  F('ankle', 'Ankle'),
-  F('armhole', 'Armhole (width)'),
-  F('elbow', 'Elbow'),
-  F('cuff', 'Cuff'),
-  F('sleeve_length', 'Sleeve length'),
-  F('sleeve_5', 'At 5 inch', 'Sleeve circumference', 'Sleeve circ. at 5"'),
-  F('sleeve_8', 'At 8 inch', 'Sleeve circumference', 'Sleeve circ. at 8"'),
-  F('sleeve_10', 'At 10 inch', 'Sleeve circumference', 'Sleeve circ. at 10"'),
-  F('sh_waist', 'Shoulder to waist'),
-  F('sh_seat', 'Shoulder to seat'),
-  F('sh_apex', 'Shoulder to apex'),
+  F('waist', 'Waist', 'Bottom length'),
+  F('waist_mid', 'Mid waist', 'Bottom length'),
+  F('seat', 'Seat', 'Bottom length'),
+  F('thighs', 'Thighs', 'Bottom length'),
+  F('knees', 'Knees', 'Bottom length'),
+  F('ankle', 'Ankle', 'Bottom length'),
+  F('armhole', 'Armhole', 'Armhole'),
+  F('armhole_length', 'Armhole length', 'Armhole'),
+  F('sleeve_length', 'Sleeve length', 'Sleeves'),
+  F('sleeve_5', 'Circ. at 5 inch', 'Sleeves', 'Sleeve circ. at 5"'),
+  F('sleeve_8', 'Circ. at 8 inch', 'Sleeves', 'Sleeve circ. at 8"'),
+  F('sleeve_10', 'Circ. at 10 inch', 'Sleeves', 'Sleeve circ. at 10"'),
+  F('elbow', 'Elbow', 'Sleeves'),
+  F('cuff', 'Cuff', 'Sleeves'),
+  F('sh_waist', 'Shoulder to waist', 'Length measurements'),
+  F('sh_seat', 'Shoulder to seat', 'Length measurements'),
+  F('sh_apex', 'Shoulder to apex', 'Length measurements'),
 ];
 
 export const ALL_KEYS = FIELDS.map((f) => f.key);
 export const FIELD_BY_KEY: Record<string, Field> = Object.fromEntries(FIELDS.map((f) => [f.key, f]));
 
 const NECK = ['neck_round', 'neck_front', 'neck_back'];
-const SHOULDER = ['shoulder_front', 'shoulder_back'];
+const SHOULDER = ['shoulder_full', 'shoulder_front', 'shoulder_back'];
 const CHEST = ['chest_upper', 'chest_mid', 'chest_under'];
 const SLEEVE_C = ['sleeve_5', 'sleeve_8', 'sleeve_10'];
 
