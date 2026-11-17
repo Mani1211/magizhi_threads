@@ -1,19 +1,23 @@
 import { useMemo, useState } from 'react';
-import { FIELDS, catalogueFieldNamed, customKey, fieldFor } from '../lib/measurements';
+import { plural } from '../lib/format';
+import { FIELDS, catalogueFieldNamed, customKey, fieldFor, type Field } from '../lib/measurements';
 import { PlusIcon } from './Icons';
 
-const CUSTOM = '__custom';
+const MAX_NAME = 40;
 
-/** "Add another measurement": any catalogue measurement not shown yet, or one with a custom name. */
-export function AddMeasurement({ existing, onAdd }: { existing: string[]; onAdd(key: string): void }) {
+/**
+ * "Add another measurement": tick any number of catalogue measurements that aren't shown yet,
+ * and/or type custom names separated by commas. One "Add" adds them all.
+ */
+export function AddMeasurement({ existing, onAdd }: { existing: string[]; onAdd(keys: string[]): void }) {
   const [open, setOpen] = useState(false);
-  const [choice, setChoice] = useState('');
-  const [name, setName] = useState('');
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [custom, setCustom] = useState('');
   const [error, setError] = useState('');
 
   const groups = useMemo(() => {
     const have = new Set(existing);
-    const out: { group: string; fields: typeof FIELDS }[] = [];
+    const out: { group: string; fields: Field[] }[] = [];
     for (const f of FIELDS) {
       if (have.has(f.key)) continue;
       const g = f.group ?? 'Length';
@@ -24,23 +28,29 @@ export function AddMeasurement({ existing, onAdd }: { existing: string[]; onAdd(
     return out;
   }, [existing]);
 
-  function reset() { setOpen(false); setChoice(''); setName(''); setError(''); }
+  const customNames = custom.split(',').map((s) => s.trim().replace(/\s+/g, ' ')).filter(Boolean);
+  const count = picked.size + customNames.length;
+
+  function reset() { setOpen(false); setPicked(new Set()); setCustom(''); setError(''); }
+
+  function toggle(key: string) {
+    setPicked((s) => { const n = new Set(s); if (n.has(key)) n.delete(key); else n.add(key); return n; });
+    setError('');
+  }
 
   function add() {
-    if (!choice) { setError('Choose a measurement.'); return; }
-    let key = choice;
-    if (choice === CUSTOM) {
-      const trimmed = name.trim();
-      if (!trimmed) { setError('Type a name for the measurement.'); return; }
-      if (trimmed.length > 40) { setError('Keep the name under 40 characters.'); return; }
-      key = catalogueFieldNamed(trimmed)?.key ?? customKey(trimmed);
+    const keys = FIELDS.filter((f) => picked.has(f.key)).map((f) => f.key);
+    const taken = new Set([...existing, ...keys].map((k) => fieldFor(k)?.full.toLowerCase()));
+    for (const name of customNames) {
+      if (name.length > MAX_NAME) { setError(`“${name.slice(0, 24)}…” is too long. Keep each name under ${MAX_NAME} characters.`); return; }
+      const key = catalogueFieldNamed(name)?.key ?? customKey(name);
+      const full = fieldFor(key)!.full;
+      if (taken.has(full.toLowerCase())) { setError(`${full} is already in the list.`); return; }
+      taken.add(full.toLowerCase());
+      keys.push(key);
     }
-    const lower = (k: string) => fieldFor(k)?.full.toLowerCase();
-    if (existing.includes(key) || existing.some((k) => lower(k) === lower(key))) {
-      setError(`${fieldFor(key)?.full ?? 'This measurement'} is already in the list.`);
-      return;
-    }
-    onAdd(key);
+    if (!keys.length) { setError('Tick at least one measurement, or type a name.'); return; }
+    onAdd(keys);
     reset();
   }
 
@@ -52,39 +62,41 @@ export function AddMeasurement({ existing, onAdd }: { existing: string[]; onAdd(
     );
   }
   return (
-    <div className="add-meas" role="group" aria-label="Add another measurement">
-      <select
-        className="text-input"
-        aria-label="Measurement to add"
-        value={choice}
-        autoFocus
-        onChange={(e) => { setChoice(e.target.value); setError(''); }}
-      >
-        <option value="">Choose a measurement…</option>
-        {groups.map((g) => (
-          <optgroup key={g.group} label={g.group}>
-            {g.fields.map((f) => <option key={f.key} value={f.key}>{f.full}</option>)}
-          </optgroup>
-        ))}
-        <option value={CUSTOM}>Other — type a name…</option>
-      </select>
-      {choice === CUSTOM && (
+    <div className="add-meas" role="group" aria-labelledby="add-meas-title">
+      <p className="add-meas-title" id="add-meas-title">Add measurements</p>
+      {groups.length > 0 && (
+        <div className="add-meas-list">
+          {groups.map((g) => (
+            <div className="add-meas-group" key={g.group} role="group" aria-label={g.group}>
+              <span className="m-legend">{g.group}</span>
+              <div className="pick-chips">
+                {g.fields.map((f) => (
+                  <label className="pick" key={f.key}>
+                    <input type="checkbox" checked={picked.has(f.key)} onChange={() => toggle(f.key)} aria-label={f.full} />
+                    <span>{f.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="field">
+        <label htmlFor="add-custom">Not in the list? Type names, separated by commas</label>
         <input
+          id="add-custom"
           className="text-input"
-          aria-label="Name of the measurement"
-          placeholder="e.g. Slit length"
-          value={name}
-          autoFocus
-          maxLength={40}
-          onChange={(e) => { setName(e.target.value); setError(''); }}
+          placeholder="e.g. Slit length, Dart point"
+          value={custom}
+          onChange={(e) => { setCustom(e.target.value); setError(''); }}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
         />
-      )}
-      <div className="add-meas-actions">
-        <button type="button" className="btn" onClick={reset}>Cancel</button>
-        <button type="button" className="btn primary" onClick={add}>Add</button>
       </div>
       {error && <p className="err" role="alert">{error}</p>}
+      <div className="add-meas-actions">
+        <button type="button" className="btn" onClick={reset}>Cancel</button>
+        <button type="button" className="btn primary" onClick={add}>{count ? `Add ${plural(count, 'measurement')}` : 'Add'}</button>
+      </div>
     </div>
   );
 }

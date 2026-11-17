@@ -71,13 +71,19 @@ export function GarmentSheet({ profile, garment, onClose, onSaved }: Props) {
     setFocusKey(null);
   }, [focusKey]);
 
-  function addExtra(key: string) {
-    setExtras((e) => [...e, key]);
-    // A catalogue measurement starts from the body value, like the rest of the list.
-    if (FIELD_BY_KEY[key] && !LENGTH_KEYS.has(key) && profile.body[key] != null) {
-      setMeas((m) => (m[key] ? m : { ...m, [key]: String(profile.body[key]) }));
-    }
-    setFocusKey(key);
+  function addExtras(added: string[]) {
+    setExtras((e) => [...e, ...added]);
+    // Catalogue measurements start from the body value, like the rest of the list.
+    setMeas((m) => {
+      const next = { ...m };
+      for (const k of added) {
+        if (FIELD_BY_KEY[k] && !LENGTH_KEYS.has(k) && profile.body[k] != null && !next[k]) next[k] = String(profile.body[k]);
+      }
+      return next;
+    });
+    // Put the cursor in the first one that still needs a value.
+    const first = added.find((k) => !(FIELD_BY_KEY[k] && !LENGTH_KEYS.has(k) && profile.body[k] != null)) ?? added[0];
+    setFocusKey(first);
   }
 
   function removeExtra(key: string) {
@@ -238,7 +244,7 @@ export function GarmentSheet({ profile, garment, onClose, onSaved }: Props) {
                 if (invalid.has(k)) setInvalid((s) => { const n = new Set(s); n.delete(k); return n; });
               }}
             />
-            <AddMeasurement existing={keys} onAdd={addExtra} />
+            <AddMeasurement existing={keys} onAdd={addExtras} />
           </>
         )}
       </div>
