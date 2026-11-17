@@ -90,7 +90,8 @@ a{color:inherit}
 .btn.solid-danger{background:var(--danger); border-color:var(--danger); color:var(--on-danger)}
 .btn.text{border:0; background:none; min-height:0; padding:6px 4px; color:var(--accent)}
 .btn.text:hover{text-decoration:underline; text-underline-offset:3px}
-.btn:disabled, .btn[aria-disabled="true"]{opacity:.6; cursor:progress}
+.btn:disabled{opacity:.55; cursor:not-allowed}
+.btn[aria-disabled="true"]{opacity:.6; cursor:progress}
 .icon-btn{width:40px; height:40px; border-radius:10px; border:1px solid var(--line); background:var(--surface); display:grid; place-items:center; cursor:pointer; flex:none}
 .icon-btn:hover{border-color:var(--ink)}
 
@@ -185,6 +186,8 @@ textarea.text-input{resize:vertical; min-height:100px}
 /* ---------- panels & measurements ---------- */
 .panel{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:14px; min-width:0}
 .panel h2{font-size:19px; font-weight:600}
+.panel-actions{display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap}
+.panel > label h2{cursor:text}
 .panel.fin{border-color:color-mix(in srgb, var(--tape) 55%, var(--line))}
 .hint{color:var(--muted); font-size:13.5px}
 .m-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%,148px),1fr)); gap:10px}
