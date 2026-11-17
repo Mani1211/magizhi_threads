@@ -12,7 +12,10 @@ Built with React, TypeScript and Vite. [Appwrite](https://appwrite.io) provides 
 
 ## Run it locally
 
+Needs Node 20.19 or newer (`nvm install` picks the version in `.nvmrc`). Works on macOS 11 (Big Sur) and later: esbuild is pinned to 0.26.0 in `package.json` because newer esbuild builds need macOS 12.
+
 ```bash
+nvm install
 npm install
 npm run dev
 ```
