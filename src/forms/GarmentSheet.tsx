@@ -3,7 +3,7 @@ import { photosOf, useData } from '../data/store';
 import type { Garment, Photo, Profile } from '../data/types';
 import { errorMessage } from '../lib/errors';
 import { firstName, plural } from '../lib/format';
-import { GARMENT_TYPES, LENGTH_KEYS, formatInch, garmentType, parseAll, parseInch, toRaw } from '../lib/measurements';
+import { FIELD_BY_KEY, GARMENT_TYPES, LENGTH_KEYS, formatInch, garmentType, parseAll, parseInch, toRaw } from '../lib/measurements';
 import { MeasurementEdit } from '../ui/MeasurementGrid';
 import { PhotoPicker } from '../ui/PhotoPicker';
 import { Sheet } from '../ui/Sheet';
@@ -32,7 +32,12 @@ export function GarmentSheet({ profile, garment, onClose, onSaved }: Props) {
   const [busy, setBusy] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
 
-  const keys = type ? garmentType(type).keys : [];
+  const typeKeys = type ? garmentType(type).keys : [];
+  // Keep values saved under fields that are no longer in this type's list, so editing never drops them.
+  const savedExtra = type && garment && garment.type === type
+    ? Object.keys(garment.measurements).filter((k) => !typeKeys.includes(k) && FIELD_BY_KEY[k])
+    : [];
+  const keys = [...typeKeys, ...savedExtra];
   const hasBody = Object.keys(profile.body).length > 0;
   const who = firstName(profile.name);
   const savedRef = garment ? photosOf(data, { garmentId: garment.id, kind: 'reference' }) : [];

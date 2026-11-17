@@ -2,7 +2,7 @@
  * Measurement catalogue for Magizhi Threads.
  *
  * FIELDS is the full-body list, in the shop's order and sections (Shoulder, Neck, Apex, Chest,
- * Bottom length, Armhole, Sleeves, Length measurements). Each garment type picks the fields it needs.
+ * Waist, Bottom length, Armhole, Sleeves, Length measurements). Each garment type picks the fields it needs.
  * Blouse and Kurti come from the shop's own list. Maxi, Anarkali and Pant are
  * provisional and will be replaced once their lists are confirmed; add or remove
  * keys in GARMENT_TYPES to change what the garment form asks for.
@@ -35,7 +35,8 @@ export const FIELDS: Field[] = [
   F('chest_upper', 'Upper chest', 'Chest'),
   F('chest_mid', 'Mid chest', 'Chest'),
   F('chest_under', 'Under chest', 'Chest'),
-  F('waist', 'Waist', 'Bottom length'),
+  F('waist', 'Waist', 'Waist'),
+  F('bottom_length', 'Length', 'Bottom length', 'Bottom length'),
   F('waist_mid', 'Mid waist', 'Bottom length'),
   F('seat', 'Seat', 'Bottom length'),
   F('thighs', 'Thighs', 'Bottom length'),
@@ -81,7 +82,7 @@ export const GARMENT_TYPES: GarmentType[] = [
     keys: ['full_length', ...SHOULDER, ...NECK, 'apex', 'apex_to_apex', ...CHEST, 'waist', 'armhole', 'sleeve_length', ...SLEEVE_C, 'sh_apex', 'sh_waist'] },
   // Provisional list — to be confirmed.
   { id: 'pant', label: 'Pant',
-    keys: ['full_length', 'waist', 'seat', 'thighs', 'knees', 'ankle'] },
+    keys: ['bottom_length', 'waist', 'seat', 'thighs', 'knees', 'ankle'] },
 ];
 
 const TYPE_BY_ID: Record<string, GarmentType> = Object.fromEntries(GARMENT_TYPES.map((t) => [t.id, t]));
@@ -103,7 +104,7 @@ export const SUMMARY: Record<string, [key: string, label: string][]> = {
   kurti: [['chest_mid', 'Chest'], ['seat', 'Seat'], ['full_length', 'Length']],
   maxi: [['chest_mid', 'Chest'], ['waist', 'Waist'], ['full_length', 'Length']],
   anarkali: [['chest_mid', 'Chest'], ['waist', 'Waist'], ['full_length', 'Length']],
-  pant: [['waist', 'Waist'], ['seat', 'Seat'], ['full_length', 'Length']],
+  pant: [['waist', 'Waist'], ['seat', 'Seat'], ['bottom_length', 'Length']],
 };
 
 export type Measurements = Record<string, number>;

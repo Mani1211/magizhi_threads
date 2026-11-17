@@ -5,7 +5,7 @@ import type { Garment } from '../data/types';
 import { GarmentSheet } from '../forms/GarmentSheet';
 import { errorMessage } from '../lib/errors';
 import { ago, firstName, formatDate, plural } from '../lib/format';
-import { LENGTH_KEYS, garmentType } from '../lib/measurements';
+import { FIELD_BY_KEY, LENGTH_KEYS, garmentType } from '../lib/measurements';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { BackIcon, EditIcon, TrashIcon } from '../ui/Icons';
 import { MeasurementView } from '../ui/MeasurementGrid';
@@ -36,7 +36,9 @@ export default function GarmentPage() {
   const t = garmentType(garment.type);
   // Only the measurements that were entered, in catalogue order.
   const filledKeys = t.keys.filter((k) => garment.measurements[k] != null);
-  const shownKeys = filledKeys;
+  // Values saved under fields that have since left this type's list still show.
+  const extraKeys = Object.keys(garment.measurements).filter((k) => !t.keys.includes(k) && FIELD_BY_KEY[k]);
+  const shownKeys = [...filledKeys, ...extraKeys];
   const refPhotos = photosOf(data, { garmentId: garment.id, kind: 'reference' });
   const finPhotos = photosOf(data, { garmentId: garment.id, kind: 'finished' });
   const anyDiff = shownKeys.some((k) => {
