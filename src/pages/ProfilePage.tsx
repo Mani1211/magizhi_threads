@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { coverPhoto, garmentsOf, photosOf, useData } from '../data/store';
 import type { Garment, Profile } from '../data/types';
 import { GarmentSheet } from '../forms/GarmentSheet';
@@ -16,13 +16,14 @@ import { useToast } from '../ui/Toast';
 import { TypeBadge, typeStyle } from '../ui/TypeBadge';
 import { UploadButton } from '../ui/UploadButton';
 import { NotFound, typeCounts } from './shared';
+import { useRouteRecords } from './useRouteRecords';
 
 const TABS = ['garments', 'measurements', 'notes'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function ProfilePage() {
-  const { profileId = '' } = useParams();
   const data = useData();
+  const { profile, redirect } = useRouteRecords();
   const navigate = useNavigate();
   const toast = useToast();
   const [params, setParams] = useSearchParams();
@@ -31,8 +32,8 @@ export default function ProfilePage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const profile = data.profiles.find((p) => p.id === profileId);
   if (!profile) return <NotFound text="This profile doesn’t exist." />;
+  if (redirect) return <Navigate to={redirect} replace />;
 
   const tab: Tab = TABS.includes(params.get('tab') as Tab) ? (params.get('tab') as Tab) : 'garments';
   const garments = garmentsOf(data, profile.id);
@@ -42,7 +43,7 @@ export default function ProfilePage() {
   async function remove() {
     setDeleting(true);
     try {
-      await data.deleteProfile(profileId);
+      await data.deleteProfile(profile!.id);
       navigate('/', { replace: true });
       toast('Profile deleted');
     } catch (e) {
@@ -176,7 +177,7 @@ function GarmentTag({ garment: g }: { garment: Garment }) {
   const cover = coverPhoto(data, g.id);
   const summary = (SUMMARY[g.type] ?? []).filter(([k]) => g.measurements[k] != null);
   return (
-    <Link className="tag" to={`/p/${g.profileId}/g/${g.id}`} style={typeStyle(g.type)}>
+    <Link className="tag" to={data.garmentPath(g)} style={typeStyle(g.type)}>
       <span className="tag-edge">
         <span className="tag-in">
           <span className="hole" />

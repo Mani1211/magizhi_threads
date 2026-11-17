@@ -72,7 +72,7 @@ export default function HomePage() {
       {creating && (
         <ProfileSheet
           onClose={() => setCreating(false)}
-          onSaved={(p) => { setCreating(false); navigate(`/p/${p.id}`); toast('Profile created'); }}
+          onSaved={(p) => { setCreating(false); navigate(`/${p.id}`); toast('Profile created'); }}
         />
       )}
     </div>
@@ -89,7 +89,7 @@ function FolderCard({ profile, touched }: { profile: Profile; touched: string })
   ].slice(0, 4);
 
   return (
-    <Link to={`/p/${profile.id}`} className="folder">
+    <Link to={data.profilePath(profile.id)} className="folder">
       <span className="folder-tab"><span className="mono">{garments.length}</span> {garments.length === 1 ? 'garment' : 'garments'}</span>
       <span className="folder-body">
         <span className="folder-top">

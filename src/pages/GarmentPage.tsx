@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { photosOf, useData } from '../data/store';
 import type { Garment } from '../data/types';
 import { GarmentSheet } from '../forms/GarmentSheet';
@@ -14,13 +14,14 @@ import { useToast } from '../ui/Toast';
 import { TypeBadge, typeStyle } from '../ui/TypeBadge';
 import { UploadButton } from '../ui/UploadButton';
 import { NotFound } from './shared';
+import { useRouteRecords } from './useRouteRecords';
 
 const TABS = ['measurements', 'notes'] as const;
 type Tab = (typeof TABS)[number];
 
 export default function GarmentPage() {
-  const { profileId = '', garmentId = '' } = useParams();
   const data = useData();
+  const { profile, garment, redirect } = useRouteRecords();
   const navigate = useNavigate();
   const toast = useToast();
   const [params, setParams] = useSearchParams();
@@ -28,9 +29,8 @@ export default function GarmentPage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const profile = data.profiles.find((p) => p.id === profileId);
-  const garment = data.garments.find((g) => g.id === garmentId && g.profileId === profileId);
   if (!profile || !garment) return <NotFound text="This garment doesn’t exist." />;
+  if (redirect) return <Navigate to={redirect} replace />;
 
   const tab: Tab = TABS.includes(params.get('tab') as Tab) ? (params.get('tab') as Tab) : 'measurements';
   const t = garmentType(garment.type);
@@ -55,8 +55,9 @@ export default function GarmentPage() {
   async function remove() {
     setDeleting(true);
     try {
-      await data.deleteGarment(garmentId);
-      navigate(`/p/${profileId}`, { replace: true });
+      const back = data.profilePath(profile!.id);
+      await data.deleteGarment(garment!.id);
+      navigate(back, { replace: true });
       toast('Garment deleted');
     } catch (e) {
       toast(errorMessage(e));
@@ -72,7 +73,7 @@ export default function GarmentPage() {
 
   return (
     <div className="stack">
-      <Link className="crumb" to={`/p/${profile.id}`}><BackIcon /> {profile.name}</Link>
+      <Link className="crumb" to={data.profilePath(profile.id)}><BackIcon /> {profile.name}</Link>
       <section className="g-head" style={typeStyle(garment.type)}>
         <div className="g-title">
           <TypeBadge type={garment.type} />

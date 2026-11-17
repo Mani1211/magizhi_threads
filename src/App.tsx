@@ -22,8 +22,11 @@ export default function App() {
             <Route element={<SignedIn />}>
               <Route path="/" element={<HomePage />} />
               <Route path="/gallery" element={<GalleryPage />} />
-              <Route path="/p/:profileId" element={<ProfilePage />} />
-              <Route path="/p/:profileId/g/:garmentId" element={<GarmentPage />} />
+              {/* Old id-based links; they redirect to the readable address. */}
+              <Route path="/p/:profileSlug" element={<ProfilePage />} />
+              <Route path="/p/:profileSlug/g/:garmentSlug" element={<GarmentPage />} />
+              <Route path="/:profileSlug" element={<ProfilePage />} />
+              <Route path="/:profileSlug/:garmentSlug" element={<GarmentPage />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

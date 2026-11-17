@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { errorMessage } from '../lib/errors';
 import { ms } from '../lib/format';
+import { RESERVED_SLUGS, slugify, uniqueSlug } from '../lib/slug';
 import { api } from './api';
 import type { Garment, GarmentInput, Photo, PhotoKind, PhotoMeta, Profile, ProfileInput, Snapshot } from './types';
 
@@ -18,6 +19,14 @@ export interface SaveResult<T> {
 
 interface Store extends State {
   reload(): void;
+  /** Readable address of a profile, e.g. "/priya-raman". */
+  profilePath(profileId: string): string;
+  /** Readable address of a garment, e.g. "/priya-raman/maroon-silk-wedding-blouse". */
+  garmentPath(garment: Garment): string;
+  /** Profile for a URL segment: its slug, or (for old links) its id. */
+  findProfile(segment: string): Profile | undefined;
+  /** Garment of a profile for a URL segment: its slug or its id. */
+  findGarment(profileId: string, segment: string): Garment | undefined;
   saveProfile(args: { id?: string; input: ProfileInput; addFiles: File[]; removePhotos: Photo[] }): Promise<SaveResult<Profile>>;
   deleteProfile(id: string): Promise<void>;
   saveGarment(args: {
@@ -109,9 +118,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, profiles: s.profiles.filter((p) => p.id !== id) }));
   }, [removePhotos]);
 
-  const value = useMemo<Store>(() => ({
-    ...state, reload: load, saveProfile, deleteProfile, saveGarment, deleteGarment, addPhotos: uploadMany,
-  }), [state, load, saveProfile, deleteProfile, saveGarment, deleteGarment, uploadMany]);
+  const slugs = useMemo(() => buildSlugs(state.profiles, state.garments), [state.profiles, state.garments]);
+
+  const value = useMemo<Store>(() => {
+    const profilePath = (id: string) => `/${encodeURIComponent(slugs.profile.get(id) ?? id)}`;
+    return {
+      ...state,
+      reload: load, saveProfile, deleteProfile, saveGarment, deleteGarment, addPhotos: uploadMany,
+      profilePath,
+      garmentPath: (g) => `${profilePath(g.profileId)}/${encodeURIComponent(slugs.garment.get(g.id) ?? g.id)}`,
+      findProfile: (segment) => {
+        const id = slugs.profileBySlug.get(segment) ?? segment;
+        return state.profiles.find((p) => p.id === id);
+      },
+      findGarment: (profileId, segment) => {
+        const id = slugs.garmentBySlug.get(`${profileId}/${segment}`) ?? segment;
+        return state.garments.find((g) => g.id === id && g.profileId === profileId);
+      },
+    };
+  }, [state, slugs, load, saveProfile, deleteProfile, saveGarment, deleteGarment, uploadMany]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
@@ -144,4 +169,36 @@ export function lastTouch(s: Snapshot, p: Profile): string {
 export function coverPhoto(s: Snapshot, garmentId: string): Photo | undefined {
   const fin = photosOf(s, { garmentId, kind: 'finished' });
   return fin[fin.length - 1] ?? photosOf(s, { garmentId, kind: 'reference' })[0];
+}
+
+/**
+ * Readable URL names from profile and garment names. Older records keep the plain name when two
+ * share it ("priya", then "priya-2"); garment names only need to be unique within their profile.
+ */
+function buildSlugs(profiles: Profile[], garments: Garment[]) {
+  const byAge = <T extends { createdAt: string; id: string }>(a: T, b: T) =>
+    a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : a.id < b.id ? -1 : 1;
+
+  const profile = new Map<string, string>();
+  const profileBySlug = new Map<string, string>();
+  const takenProfiles = new Set(RESERVED_SLUGS);
+  for (const p of [...profiles].sort(byAge)) {
+    const slug = uniqueSlug(slugify(p.name, 'profile'), takenProfiles);
+    takenProfiles.add(slug);
+    profile.set(p.id, slug);
+    profileBySlug.set(slug, p.id);
+  }
+
+  const garment = new Map<string, string>();
+  const garmentBySlug = new Map<string, string>();
+  const takenGarments = new Map<string, Set<string>>();
+  for (const g of [...garments].sort(byAge)) {
+    const taken = takenGarments.get(g.profileId) ?? new Set<string>();
+    const slug = uniqueSlug(slugify(g.name, 'garment'), taken);
+    taken.add(slug);
+    takenGarments.set(g.profileId, taken);
+    garment.set(g.id, slug);
+    garmentBySlug.set(`${g.profileId}/${slug}`, g.id);
+  }
+  return { profile, profileBySlug, garment, garmentBySlug };
 }

@@ -64,7 +64,7 @@ export default function GalleryPage() {
                 </button>
                 <figcaption>
                   <TypeBadge type={x.type} />
-                  <Link className="gal-name" to={`/p/${x.profile.id}/g/${x.garment.id}`}>{x.garment.name}</Link>
+                  <Link className="gal-name" to={data.garmentPath(x.garment)}>{x.garment.name}</Link>
                   <span className="gal-who">{x.profile.name} · {formatDate(x.photo.createdAt)}</span>
                 </figcaption>
               </figure>
@@ -81,7 +81,7 @@ export default function GalleryPage() {
             fileId: x.photo.fileId,
             title: x.garment.name,
             sub: `${x.profile.name} · ${formatDate(x.photo.createdAt)}`,
-            href: `/p/${x.profile.id}/g/${x.garment.id}`,
+            href: data.garmentPath(x.garment),
           }))}
         />
       )}

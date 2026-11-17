@@ -7,6 +7,7 @@ The measurement book for Magizhi Threads: customer profiles with full-body measu
 - **Gallery:** every finished photo, newest first, filterable by garment type.
 - Measurements are in inches; `14.5`, `14 1/2` and `14½` all work and display as `14½″`.
 - Works on phones and can be added to the home screen.
+- Readable addresses built from names, e.g. `/priya-raman/maroon-silk-wedding-blouse` (duplicates get `-2`, `-3`; old id links redirect). The host must serve `index.html` for these paths (see Deploy).
 
 Built with React, TypeScript and Vite. [Appwrite](https://appwrite.io) provides sign-in, the database and photo storage.
 
