@@ -1,8 +1,9 @@
 /**
  * Measurement catalogue for Magizhi Threads.
  *
- * FIELDS is the full-body list, in the shop's order and sections (Shoulder, Neck, Apex, Chest,
- * Waist, Bottom length, Armhole, Sleeves, Length measurements). Each garment type picks the fields it needs.
+ * FIELDS is the full-body list, in the shop's order and sections: Full length, Shoulder, Neck,
+ * Apex, Armhole, Sleeves, Chest, Waist, Length measurements, Bottom length. Every form and page
+ * lists measurements in this order. Each garment type picks the fields it needs.
  * Blouse and Kurti come from the shop's own list. Maxi, Anarkali and Pant are
  * provisional and will be replaced once their lists are confirmed; add or remove
  * keys in GARMENT_TYPES to change what the garment form asks for.
@@ -32,16 +33,6 @@ export const FIELDS: Field[] = [
   F('neck_back', 'Neck back', 'Neck'),
   F('apex', 'Apex', 'Apex'),
   F('apex_to_apex', 'Apex to apex', 'Apex'),
-  F('chest_upper', 'Upper chest', 'Chest'),
-  F('chest_mid', 'Mid chest', 'Chest'),
-  F('chest_under', 'Under chest', 'Chest'),
-  F('waist', 'Waist', 'Waist'),
-  F('bottom_length', 'Length', 'Bottom length', 'Bottom length'),
-  F('waist_mid', 'Mid waist', 'Bottom length'),
-  F('seat', 'Seat', 'Bottom length'),
-  F('thighs', 'Thighs', 'Bottom length'),
-  F('knees', 'Knees', 'Bottom length'),
-  F('ankle', 'Ankle', 'Bottom length'),
   F('armhole', 'Armhole', 'Armhole'),
   F('armhole_length', 'Armhole length', 'Armhole'),
   F('sleeve_length', 'Sleeve length', 'Sleeves'),
@@ -50,9 +41,19 @@ export const FIELDS: Field[] = [
   F('sleeve_10', 'Circ. at 10 inch', 'Sleeves', 'Sleeve circ. at 10"'),
   F('elbow', 'Elbow', 'Sleeves'),
   F('cuff', 'Cuff', 'Sleeves'),
+  F('chest_upper', 'Upper chest', 'Chest'),
+  F('chest_mid', 'Mid chest', 'Chest'),
+  F('chest_under', 'Under chest', 'Chest'),
+  F('waist', 'Waist', 'Waist'),
   F('sh_waist', 'Shoulder to waist', 'Length measurements'),
   F('sh_seat', 'Shoulder to seat', 'Length measurements'),
   F('sh_apex', 'Shoulder to apex', 'Length measurements'),
+  F('bottom_length', 'Length', 'Bottom length', 'Bottom length'),
+  F('waist_mid', 'Mid waist', 'Bottom length'),
+  F('seat', 'Seat', 'Bottom length'),
+  F('thighs', 'Thighs', 'Bottom length'),
+  F('knees', 'Knees', 'Bottom length'),
+  F('ankle', 'Ankle', 'Bottom length'),
 ];
 
 export const ALL_KEYS = FIELDS.map((f) => f.key);
