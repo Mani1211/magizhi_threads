@@ -1,0 +1,14 @@
+{
+  "name": "Magizhi Threads",
+  "short_name": "Magizhi",
+  "description": "Customer profiles, measurements and garments for Magizhi Threads.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F4ECE1",
+  "theme_color": "#0F4A45",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

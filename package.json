@@ -1,0 +1,28 @@
+{
+  "name": "magizhi-threads",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "dependencies": {
+    "appwrite": "29.2.0",
+    "react": "19.2.9",
+    "react-dom": "19.2.9",
+    "react-router-dom": "7.18.5"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@vitejs/plugin-react": "5.1.4",
+    "node-appwrite": "31.1.0",
+    "typescript": "5.9.3",
+    "vite": "7.3.7"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc",
+    "setup:appwrite": "node scripts/setup-appwrite.mjs",
+    "setup:user": "node scripts/setup-appwrite.mjs add-user"
+  }
+}
